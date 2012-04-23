@@ -1,0 +1,125 @@
+{-# LANGUAGE TypeOperators #-}
+
+module LameTetris.Video where
+
+import Data.Word
+import Data.Array.Repa
+import qualified Data.Array.Repa as R
+import Data.Array.Repa.Repr.Vector
+import Control.Monad (mapM_, when)
+import Control.Monad.RWS
+
+import Graphics.UI.SDL
+import qualified Graphics.UI.SDL as SDL
+import Graphics.UI.SDL.Color
+import Graphics.UI.SDL.Image
+
+import LameTetris.Types
+import qualified LameTetris.Types as LT
+import LameTetris.Utils
+
+
+-- | Background color pixel 
+bgPixel = Pixel 0x201e1e
+
+
+{- Drawing functions -}
+
+-- | Draws the entire board
+  -- (does not include border)
+drawBoard :: Board -> Game ()
+drawBoard board = do screen <- asks mainScreen
+                     drawStaticBoardParts
+                     mapM_ drawCoord allCoords
+                     liftIO $ SDL.flip screen
+                     
+  where
+    allCoords = [(x,y) | x <- [0..(boardWidth - 1)],
+                         y <- [0..(boardHeight - 1)] ]
+    drawCoord (x,y) = drawBlock x y $ board ! (R.Z :. x :. y)
+
+
+-- | Draws an individual block 
+drawBlock :: Int -> Int -> Cell -> Game ()
+drawBlock x y block = do
+  screen <- asks mainScreen
+  tiles <- asks tileSet
+
+  liftIO $ case block of
+             Just btype -> blitSurface tiles (getBlockRect btype) screen $ location x y
+             Nothing -> blitSurface tiles blankRect screen $ location x y
+  return ()
+ where
+   -- | Empty board sqare
+   blankRect = rpoint 32 32
+
+
+-- | Draws everything that never changes
+drawStaticBoardParts :: Game ()
+drawStaticBoardParts = do
+  screen <- asks mainScreen
+  tiles <- asks tileSet
+
+  liftIO $ do fillRect screen Nothing bgPixel
+              -- easy blitting function
+              let blitTile clipRect = blitSurface tiles clipRect screen . (uncurry location)
+              
+              -- Top Left
+              blitTile topLeft ((-1), (-1))
+              -- Top Sides
+              mapM_ (blitTile topSide) topCoords
+              -- Top Right
+              blitTile topRight ((-1), 11)
+              -- Right Sides
+              mapM_ (blitTile rightSide) rightCoords
+              -- Bottom Right
+              blitTile bottomRight (11, 11)
+              -- Bottom Sides
+              mapM_ (blitTile bottomSide) bottomCoords
+              -- Bottom Left
+              blitTile bottomLeft ((-1), 11)
+              -- Left Sides
+              mapM_ (blitTile leftSide) leftCoords
+
+
+              {- TODO: draw title, lines, next (text) -}
+              
+ where
+   -- list of coordinates for each side
+   topCoords = [ (x, (-1)) | x <- [0 .. boardWidth - 1] ]
+   rightCoords = [ (11, y) | y <- [0 .. boardHeight - 1] ]
+   bottomCoords = [ (x, 11) | x <- [0 .. boardWidth -1] ]
+   leftCoords = [ ((-1), y) | y <- [0 .. boardHeight -1] ]
+   -- Sections of the tileset for the board side
+   topLeft = rpoint 0 0
+   topSide = rpoint 32 0
+   topRight = rpoint 64 0
+   rightSide = rpoint 64 32
+   bottomRight = rpoint 64 64
+   bottomSide = rpoint 32 64
+   bottomLeft = rpoint 0 64
+   leftSide = rpoint 0 32
+              
+
+initScreenFlags :: [SurfaceFlag]
+initScreenFlags = [HWSurface, HWAccel, DoubleBuf]
+-- initScreenFlags = [SWSurface] 
+
+loadImage :: String -> Maybe (Word8, Word8, Word8) -> IO Surface
+loadImage filename colorKey = load filename >>= displayFormat >>= setColorKey' colorKey
+
+setColorKey' Nothing s = return s
+setColorKey' (Just (r, g, b)) surface = do
+  pxl <- mapRGB (surfaceGetPixelFormat surface) r g b
+  setColorKey surface [SrcColorKey, RLEAccel] pxl
+  return surface
+
+loadResources :: IO Resources
+loadResources = do
+  screen <- setVideoMode 600 768 32 initScreenFlags
+  setCaption "Lame Tetris!" []
+  tiles <- loadImage "data/tiles.png" Nothing
+  return $ Resources { mainScreen = screen
+                     , tileSet = tiles
+                     , font = undefined
+                     }

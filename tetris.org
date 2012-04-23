@@ -1,0 +1,14 @@
+-- LameTetris --
+
+* self-tips
+** use extract (Z :. 10 :. 20) (extent currentActivePiece) board
+*** returns an array that is a subsection the exact size of the current piece
+
+
+
+
+* Additional Info
+	+ Font found here:
+    http://www.freepremiumfonts.com/free-font/sabatica-regular.aspx
+		license:
+		http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL

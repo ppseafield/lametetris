@@ -11,4 +11,4 @@ data-dir: data/
 
 executable lametetris
   main-is: LameTetris.hs
-  build-depends: SDL SDL-image SDL-mixer SDL-ttf transformers
+  build-depends: SDL, SDL-image, SDL-mixer, SDL-ttf, transformers
