@@ -2,7 +2,7 @@ module LameTetris.Timer where
 
 import Data.Word
 import Control.Monad (when)
-import Control.Monad.RWS
+import Control.Monad.RWS.Strict
 import Graphics.UI.SDL.Time
 import LameTetris.Types
 
@@ -43,13 +43,17 @@ waitUntilNextFrame = do
   start <- fmap startedAt $ gets timer
   now <- liftIO getTicks
   let td = now - start
-  when (td < minDelta) $
+      minDelta = 1000 `div` gameFPS
+  when (td < minDelta) $ do
     liftIO $ delay (minDelta - td)
- where minDelta = 1000 `div` gameFPS
+    now' <- liftIO $ getTicks
+    time <- gets timer
+    let updateTsld gs = gs { timer = (time {tsld = now'}) } in modify updateTsld
+
 
 initialTimer :: IO Timer
 initialTimer = do
-  now <- liftIO getTicks
+  now <- getTicks
   return $ Timer { startedAt = now
                  , paused = False
                  , tsld = 0

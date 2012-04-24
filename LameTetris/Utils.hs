@@ -6,7 +6,7 @@ import Data.Word
 import Data.Array.Repa
 import Data.Array.Repa.Repr.Vector
 import qualified Data.Array.Repa as R
-import Control.Monad.RWS
+import Control.Monad.RWS.Strict
 
 import Graphics.UI.SDL
 
@@ -26,8 +26,8 @@ blockHeight = 32
 
 -- | X, Y coordinates where the board should start to be drawn
 boardStartX, boardStartY :: Int
-boardStartX = 100
-boardStartY = 100
+boardStartX = 50
+boardStartY = 70
 
 -- | Used in blitting as a coordinate
 rpoint :: Int -> Int -> Maybe Rect

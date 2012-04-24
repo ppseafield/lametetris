@@ -7,7 +7,7 @@ import Data.Array.Repa
 import qualified Data.Array.Repa as R
 import Data.Array.Repa.Repr.Vector
 import Control.Monad (mapM_, when)
-import Control.Monad.RWS
+import Control.Monad.RWS.Strict
 
 import Graphics.UI.SDL
 import qualified Graphics.UI.SDL as SDL
@@ -32,6 +32,7 @@ drawBoard board = do screen <- asks mainScreen
                      drawStaticBoardParts
                      mapM_ drawCoord allCoords
                      liftIO $ SDL.flip screen
+                     tell 1 -- frame increment
                      
   where
     allCoords = [(x,y) | x <- [0..(boardWidth - 1)],
@@ -69,26 +70,32 @@ drawStaticBoardParts = do
               -- Top Sides
               mapM_ (blitTile topSide) topCoords
               -- Top Right
-              blitTile topRight ((-1), 11)
+              blitTile topRight (10, (-1))
               -- Right Sides
               mapM_ (blitTile rightSide) rightCoords
               -- Bottom Right
-              blitTile bottomRight (11, 11)
+              blitTile bottomRight (10, 20)
               -- Bottom Sides
               mapM_ (blitTile bottomSide) bottomCoords
               -- Bottom Left
-              blitTile bottomLeft ((-1), 11)
+              blitTile bottomLeft ((-1), 20)
               -- Left Sides
               mapM_ (blitTile leftSide) leftCoords
+              
+              -- title
+              blitSurface tiles (Just $ Rect 32 160 64 32) screen (rpoint 450 100)
+              -- next piece
+              blitSurface tiles (Just $ Rect 56 199 41 15) screen (rpoint 465 220)
+              -- lines
+              blitSurface tiles (Just $ Rect 6 197 44 17)  screen (rpoint 465 500)
 
-
-              {- TODO: draw title, lines, next (text) -}
+              return ()
               
  where
    -- list of coordinates for each side
    topCoords = [ (x, (-1)) | x <- [0 .. boardWidth - 1] ]
-   rightCoords = [ (11, y) | y <- [0 .. boardHeight - 1] ]
-   bottomCoords = [ (x, 11) | x <- [0 .. boardWidth -1] ]
+   rightCoords = [ (10, y) | y <- [0 .. boardHeight - 1] ]
+   bottomCoords = [ (x, 20) | x <- [0 .. boardWidth -1] ]
    leftCoords = [ ((-1), y) | y <- [0 .. boardHeight -1] ]
    -- Sections of the tileset for the board side
    topLeft = rpoint 0 0

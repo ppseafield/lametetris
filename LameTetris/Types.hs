@@ -3,17 +3,25 @@
 module LameTetris.Types where
 
 import Data.Word
+import Data.Monoid
 import Data.Array.Repa
 import Data.Array.Repa.Repr.Vector
 import qualified Data.Array.Repa as R
-import Control.Monad.RWS
+import Control.Monad.RWS.Strict
 
 import Graphics.UI.SDL
 import Graphics.UI.SDL.TTF
 
 
+instance Monoid Int where
+  mempty = 0
+  mappend = (+)
+  mconcat = sum
+
 -- | Game monad
-type Game = RWST Resources String GameState IO
+  -- Resources = SDL Surfaces/fonts
+  -- Int = number of frames
+type Game = RWST Resources Int GameState IO
 
 -- | Regulates time
 data Timer =
@@ -58,7 +66,7 @@ data Resources =
 
 -- | Describes everything that's going on in the game right now
 data GameState =
-  GameState { lines :: Word32 -- ^ how many lines have been eliminated
+  GameState { lineNum :: Word32 -- ^ how many lines have been eliminated
             , timer :: Timer -- ^ regulates time
             , currentPiece :: Block -- ^ current dropping piece
             , nextPiece :: Block -- ^ next piece to be generated
