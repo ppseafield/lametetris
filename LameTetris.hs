@@ -11,8 +11,9 @@ import LameTetris.Game
 main :: IO ()
 main = withInit [InitEverything] $ do
   resc <- loadResources
-  let gs = GameState 0 undefined undefined undefined startBoard
+  gs <- initialGS
   (s, w) <- execRWST gameLoop resc gs
   ticks <- fmap fromEnum getTicks
   putStrLn $ "Average frame rate: " ++ (show $ w `div` (ticks `div` 1000))
+  putStrLn $ "GameState: \n" ++ (show s)
   return ()

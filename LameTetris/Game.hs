@@ -50,7 +50,7 @@ initialGS = do time <- initialTimer
                return $ GameState { lineNum = 0
                                   , timer = time
                                   , currentPiece = frst
-                                  , nextPiece = next
+                                  , nextPiece = next { position = (12, 8) }
                                   , board = startBoard
                                   }
 

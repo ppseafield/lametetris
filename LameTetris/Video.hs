@@ -29,7 +29,11 @@ bgPixel = Pixel 0x201e1e
   -- (does not include border)
 drawBoard :: Board -> Game ()
 drawBoard board = do screen <- asks mainScreen
+                     currentb <- gets currentPiece
+                     nextb <- gets nextPiece
                      drawStaticBoardParts
+                     drawBlock currentb
+                     drawBlock nextb
                      mapM_ drawCoord allCoords
                      liftIO $ SDL.flip screen
                      tell 1 -- frame increment
@@ -37,22 +41,36 @@ drawBoard board = do screen <- asks mainScreen
   where
     allCoords = [(x,y) | x <- [0..(boardWidth - 1)],
                          y <- [0..(boardHeight - 1)] ]
-    drawCoord (x,y) = drawBlock x y $ board ! (R.Z :. x :. y)
+    drawCoord (x,y) = drawCell x y $ board ! (R.Z :. x :. y)
 
 
--- | Draws an individual block 
-drawBlock :: Int -> Int -> Cell -> Game ()
-drawBlock x y block = do
+-- | Draws an individual cell
+drawCell :: Int -> Int -> Cell -> Game ()
+drawCell x y cell = do
   screen <- asks mainScreen
   tiles <- asks tileSet
 
-  liftIO $ case block of
+  liftIO $ case cell of
              Just btype -> blitSurface tiles (getBlockRect btype) screen $ location x y
-             Nothing -> blitSurface tiles blankRect screen $ location x y
+             Nothing -> return False -- blitSurface tiles blankRect screen $ location x y
   return ()
  where
    -- | Empty board sqare
    blankRect = rpoint 32 32
+
+
+-- | Draw a whole piece
+drawBlock :: Block -> Game ()
+drawBlock block = do screen <- asks mainScreen
+                     tiles <- asks tileSet
+                     mapM_ drawCoord allCoords
+  where blockGuts = guts block
+        (R.Z :. w :. h)  = extent blockGuts
+        (startx, starty) = position block
+        allCoords = [(x, y) | x <- [0 .. w - 1],
+                              y <- [0 .. h - 1] ]
+        drawCoord (x,y) = drawCell (startx + x) (starty + y) $ blockGuts ! (R.Z :. x :. y)
+               
 
 
 -- | Draws everything that never changes

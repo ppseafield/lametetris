@@ -56,42 +56,44 @@ getBlockRect LT.Z = rpoint 0 160
 
 
 -- | Given a block type, produce the "guts" of a block
+-- | Remember, these fill in top down, THEN left -> right
 getGuts :: BlockType -> Grid
-getGuts I = fromListVector (R.Z :. 1 :. 4) $
+getGuts I = fromListVector (R.Z :. 4 :. 1) $ -- right
               [ Just I
               , Just I
               , Just I
               , Just I
               ]
 
-getGuts J = fromListVector (R.Z :. 2 :. 3) $
-              [ Nothing, Just J
-              , Nothing, Just J
-              , Just J, Just J
+getGuts J = fromListVector (R.Z :. 2 :. 3) $ -- right
+              [ Nothing, Nothing, Just J
+              , Just J, Just J, Just J
               ]
 
-getGuts L = fromListVector (R.Z :. 2 :. 3) $
-              [ Just L, Nothing
-              , Just L, Nothing
-              , Just L, Just L
+getGuts L = fromListVector (R.Z :. 2 :. 3) $ -- right
+              [ Just L, Just L, Just L,
+                Nothing, Nothing, Just L
               ]
 
-getGuts O = fromListVector (R.Z :. 2 :. 2) $
+getGuts O = fromListVector (R.Z :. 2 :. 2) $ -- right
               [ Just O, Just O
               , Just O, Just O
               ]
 
-getGuts S = fromListVector (R.Z :. 3 :. 2) $
-              [ Nothing, Just S, Just S
-              , Just S,  Just S, Nothing
+getGuts S = fromListVector (R.Z :. 3 :. 2) $ -- right
+              [ Nothing, Just S
+              , Just S, Just S
+              , Just S, Nothing
               ]
 
-getGuts T = fromListVector (R.Z :. 3 :. 2) $
-              [ Just T,  Just T, Just T
-              , Nothing, Just T, Nothing
+getGuts T = fromListVector (R.Z :. 3 :. 2) $ -- right
+              [ Just T, Nothing
+              , Just T, Just T
+              , Just T, Nothing
               ]
 
 getGuts LT.Z = fromListVector (R.Z :. 3 :. 2) $
-              [ Just LT.Z, Just LT.Z, Nothing
-              , Nothing,   Just LT.Z, Just LT.Z
+              [ Just LT.Z, Nothing
+              , Just LT.Z, Just LT.Z
+              , Nothing,  Just LT.Z
               ]

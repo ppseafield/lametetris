@@ -29,7 +29,7 @@ data Timer =
         , paused :: Bool
         , tsld :: Word32 -- ^ time since last drop
         , interval :: Word32 -- ^ How long it takes for a piece to drop
-        }
+        } deriving (Show)
 
 -- | Grid cell type
 --   Any cell can be either empty, or filled with some block type.
@@ -54,7 +54,7 @@ type Board = Grid
 -- | How an active block is described
 data Block = Block { position :: Point
                    , guts :: Grid
-                   }
+                   } deriving (Show)
 
 
 -- | Contains all SDL resources necessary to render the game
@@ -71,4 +71,4 @@ data GameState =
             , currentPiece :: Block -- ^ current dropping piece
             , nextPiece :: Block -- ^ next piece to be generated
             , board :: Board
-            }
+            } deriving (Show)
