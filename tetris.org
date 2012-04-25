@@ -5,9 +5,11 @@
 *** returns an array that is a subsection the exact size of the current piece
 
 * ponder how much sense it would make to add an instance Enum a => Random a where
+** added instance (Enum a, Bounded a) => Random a 
 
 * Got the individual pieces to blit
 ** consider just having a backdrop instead of blitting each empty cell in the board!!!!
+*** DONE backdrop is dumb, just leave empty!
 
 
 * Additional Info
