@@ -22,40 +22,44 @@ calculateInterval lines
   | lines < 100 = initialInterval - (75 * (lines `div` 10))
   | otherwise = (initialInterval `div` 2) - (40 * ((lines - 100) `div` 10))
 
--- | Pause timer
-pause :: Game ()
-pause = do
-  st <- get -- Grab the game state
-  let time = timer st
-    in put $ st { timer = (time { paused = True }) }
+-- -- | Pause timer
+-- pause :: Game ()
+-- pause = do
+--   st <- get -- Grab the game state
+--   let time = timer st
+--     in put $ st { timer = (time { paused = True }) }
        
--- | Unpause timer  
-unpause :: Game ()
-unpause = do
-  st <- get -- Grab the game state
-  let time = timer st
-   in put $ st { timer = (time { paused = False }) }
+-- -- | Unpause timer  
+-- unpause :: Game ()
+-- unpause = do
+--   st <- get -- Grab the game state
+--   let time = timer st
+--    in put $ st { timer = (time { paused = False }) }
 
 -- | If it's too early to run the game loop again, just
   -- delay until it's time
 waitUntilNextFrame :: Game ()
 waitUntilNextFrame = do
-  start <- fmap startedAt $ gets timer
+  time <- gets timer
   now <- liftIO getTicks
-  let td = now - start
+  let start = startedAt time
+      td = now - start
       minDelta = 1000 `div` gameFPS
   when (td < minDelta) $ do
     liftIO $ delay (minDelta - td)
     now' <- liftIO $ getTicks
     time <- gets timer
-    let updateTsld gs = gs { timer = (time {tsld = now'}) } in modify updateTsld
+    setTimer $ time {startedAt = now'}
 
 
 initialTimer :: IO Timer
 initialTimer = do
   now <- getTicks
   return $ Timer { startedAt = now
-                 , paused = False
                  , tsld = 0
                  , interval = initialInterval
                  }
+
+setTimer :: Timer -> Game ()
+setTimer time = do gs <- get
+                   put $ gs { timer = time }

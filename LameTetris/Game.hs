@@ -59,7 +59,25 @@ gameLoop :: Game ()
 gameLoop = do
   event <- handlePoll
   when (event /= Quit) $ do drawBoard startBoard
+                            handleInterval
+                            waitUntilNextFrame
                             gameLoop
+
+
+-- | Checks if the interval has been reached, if so, move down!
+handleInterval :: Game ()                            
+handleInterval = do
+  time <- gets timer
+  now <- liftIO $ getTicks
+  let lastDropDelta = now - (tsld time)
+      interv = interval time
+  when (lastDropDelta >= interv) $ do movePiece 0 1
+                                      linum <- gets lineNum
+                                      let newInt = calculateInterval linum
+                                      setTimer $ time { interval = newInt
+                                                      , tsld = now
+                                                      }
+
 
 -- | Polls and polls until it can't poll no more!
 handlePoll :: Game Event
@@ -72,4 +90,26 @@ handlePoll = do
 
 -- | In any event, this is what you do:
 handleEvent :: Event -> Game ()
-handleEvent _ = return () -- TODO actually write this!
+handleEvent (KeyUp (Keysym SDLK_LEFT _ _))  = movePiece (-1) 0
+handleEvent (KeyUp (Keysym SDLK_RIGHT _ _)) = movePiece 1 0
+handleEvent (KeyUp (Keysym SDLK_DOWN _ _))  = movePiece 0 1
+
+
+handleEvent _ = return ()
+
+
+
+-- | Moves a piece in some direction
+  -- movePiece (-1) 0 moves the current piece left
+  -- moviePiece 0 1 movies it down
+movePiece :: Int -> Int -> Game()
+movePiece dx dy = do gs <- get
+                     let current = currentPiece gs
+                         (x, y) = position current
+                         (R.Z :. w :. h) = extent $ guts current
+                         targetx = x + dx
+                         targety = y + dy
+                         -- TODO: Check for blocks in the area
+                         x' = if targetx > (10 - w) || targetx < 0 then x else targetx
+                         y' = if targety > (20 - h) then y else targety
+                     put $ gs { currentPiece = current { position = (x', y') } }

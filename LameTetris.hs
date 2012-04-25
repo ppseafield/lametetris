@@ -15,5 +15,5 @@ main = withInit [InitEverything] $ do
   (s, w) <- execRWST gameLoop resc gs
   ticks <- fmap fromEnum getTicks
   putStrLn $ "Average frame rate: " ++ (show $ w `div` (ticks `div` 1000))
-  putStrLn $ "GameState: \n" ++ (show s)
+  -- putStrLn $ "GameState: \n" ++ (show s)
   return ()

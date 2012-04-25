@@ -26,7 +26,6 @@ type Game = RWST Resources Int GameState IO
 -- | Regulates time
 data Timer =
   Timer { startedAt :: Word32
-        , paused :: Bool
         , tsld :: Word32 -- ^ time since last drop
         , interval :: Word32 -- ^ How long it takes for a piece to drop
         } deriving (Show)
