@@ -14,6 +14,12 @@ import LameTetris.Types
 import qualified LameTetris.Types as LT
 
 
+ifM :: (Monad m) => m Bool -> m () -> m () -> m ()
+ifM condition action1 action2 = do cond <- condition
+                                   if cond
+                                     then action1
+                                     else action2
+
 -- | Board dimensions
 boardWidth, boardHeight :: Int
 boardWidth = 10
@@ -40,6 +46,28 @@ location x y = Just $ Rect ((x * blockWidth) + boardStartX)
                            ((y * blockHeight) + boardStartY)
                            0
                            0
+
+{- Setter functions -}
+setLineNum :: Word32 -> Game ()
+setLineNum linum = do gs <- get
+                      put $ gs { lineNum = linum }
+
+setTimer :: Timer -> Game ()
+setTimer time = do gs <- get
+                   put $ gs { timer = time }
+
+setCurrentPiece :: Block -> Game ()
+setCurrentPiece piece = do gs <- get
+                           put $ gs { currentPiece = piece }
+
+setNextPiece :: Block -> Game ()
+setNextPiece npiece = do gs <- get
+                         put $ gs { nextPiece = npiece }
+
+setBoard :: Board -> Game ()
+setBoard brd = do gs <- get
+                  put $ gs { board = brd }
+
 
 {- BlockType functions -}
 

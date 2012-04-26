@@ -5,6 +5,7 @@ import Control.Monad (when)
 import Control.Monad.RWS.Strict
 import Graphics.UI.SDL.Time
 import LameTetris.Types
+import LameTetris.Utils
 
 -- constants
 
@@ -59,7 +60,3 @@ initialTimer = do
                  , tsld = 0
                  , interval = initialInterval
                  }
-
-setTimer :: Timer -> Game ()
-setTimer time = do gs <- get
-                   put $ gs { timer = time }

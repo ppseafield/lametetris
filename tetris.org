@@ -1,16 +1,25 @@
 -- LameTetris --
 
-* self-tips
+* DONE self-tips
 ** use extract (Z :. 10 :. 20) (extent currentActivePiece) board
 *** returns an array that is a subsection the exact size of the current piece
 
-* ponder how much sense it would make to add an instance Enum a => Random a where
+* DONE ponder how much sense it would make to add an instance Enum a => Random a where
 ** added instance (Enum a, Bounded a) => Random a 
 
-* Got the individual pieces to blit
+* DONE Got the individual pieces to blit
 ** consider just having a backdrop instead of blitting each empty cell in the board!!!!
 *** DONE backdrop is dumb, just leave empty!
 
+* DONE rotate formula:
+	flipCoords (x,y) newBlockWidth = (newBlockWidth - y - 1, x)
+** x becomes y, y becomes the new x but counting from the right
+** up now rotates pieces
+
+* TODO check if piece needs to be set, and then spawn if necessary
+** TODO write checkPieceShouldBeSet
+** TODO write setPieceAndStartAnew
+	 
 
 * Additional Info
 	+ Font found here:

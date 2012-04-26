@@ -100,7 +100,7 @@ drawStaticBoardParts = do
               -- Left Sides
               mapM_ (blitTile leftSide) leftCoords
               
-              -- title
+              -- title text
               blitSurface tiles (Just $ Rect 32 160 64 32) screen (rpoint 450 100)
               -- next piece
               blitSurface tiles (Just $ Rect 56 199 41 15) screen (rpoint 465 220)
