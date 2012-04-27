@@ -47,6 +47,11 @@ location x y = Just $ Rect ((x * blockWidth) + boardStartX)
                            0
                            0
 
+-- | Used to see if cells collide
+bothJust :: Cell -> Cell -> Bool
+bothJust (Just _) (Just _) = True            
+bothJust _ _ = False
+
 {- Setter functions -}
 setLineNum :: Word32 -> Game ()
 setLineNum linum = do gs <- get
@@ -125,3 +130,5 @@ getGuts LT.Z = fromListVector (R.Z :. 3 :. 2) $
               , Just LT.Z, Just LT.Z
               , Nothing,  Just LT.Z
               ]
+
+
