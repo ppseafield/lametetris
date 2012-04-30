@@ -109,7 +109,8 @@ handleEvent _ = return ()
 
 -- | Checks if two grids collide
 collide :: Grid -> Grid -> Bool
-collide g1 g2 = any id $ P.zipWith (bothJust) (toList g1) (toList g2)
+collide g1 g2 = R.foldAllS (||) False $ R.zipWith (bothJust) g1 g2
+  
 
 -- | Takes a point (position current), a source (guts current),
   -- and a destination (board), and 
@@ -141,10 +142,10 @@ scanFullRows grid = catMaybes . P.map checkFull $ rows
     rows = P.zip range $ P.map getRow range
 
     checkFull :: (Int, Grid) -> Maybe Int
-    checkFull (ix, row) =
-      case all isJust $ toList row of
-        False -> Nothing -- Ain't full, please disregard
-        True -> Just ix -- Full row here, remember the index!
+    checkFull (ix, row) = do isFull <- foldAllP (&&) True $ R.map isJust row
+                             case isFull of
+                               False -> Nothing -- Ain't full, please disregard
+                               True -> Just ix -- Full row here, remember the index!
 
 
 -- | Checks if we should set the current piece into the board and move on                    
@@ -166,8 +167,8 @@ checkPieceCanMove block dx dy = do
       currentsh@(R.Z :. w :. h) = extent currentSlice
       -- y+1 gets us the 
       boardSlice = computeVectorS $ extract (R.Z :. x+dx :. y+dy) currentsh brd
-  if (y + h) >= boardHeight || (x + dx) < 0 || (x + dx + w) > boardWidth -- board edge check
-    then return False -- Bottom of the board, left side of board, right side
+  if (y + h) >= boardHeight || (x + dx) < 0 || (x + dx) > (boardWidth - w) -- board edge check
+    then trace ("right edge check: " P.++ show (x + dx)) $ return False -- Bottom of the board, left side of board, right side
     else let doesntCollide = not $ collide currentSlice boardSlice -- board contents check
          in return doesntCollide
 
@@ -212,18 +213,24 @@ rotateCurrent = gets currentPiece >>= rotate >>= setCurrentPiece
          -- make sure that the px and py values fit the piece on the board!
          permissibleX x
            | x < 0 = 0
-           | x >= boardWidth - w' = boardWidth - w' - 1
+           | x >= (boardWidth - w') = boardWidth - w'
            | otherwise = x
          permissibleY y
            | y < 0 = 0
-           | y >= boardHeight - h' = boardHeight - h' -1
+           | y >= (boardHeight - h') = boardHeight - h'
            | otherwise = y
          newpos@(newx, newy) = (permissibleX px, permissibleY py)
          -- shuffle pieces over to their new positions
          translateC (R.Z :. x :. y) = (R.Z :. (oldw - y - 1) :. x)
          newgrid = computeVectorS $ backpermute newsh translateC grid
          newblock = Block { position = newpos, guts = newgrid }
-     canMove <- checkPieceCanMove newblock newx newy
+     canMove <- trace (show newblock) $ checkPieceCanMove newblock 0 0
      return $ if canMove
               then trace "block rotated" $ newblock
-              else trace "couldn't rotate" $ block -- can't move, keep same
+              else let errstr = P.concat ["Can't rotate!\n"
+                                         , "x: ", show newx
+                                         , ", y: ", show newy
+                                         , "\nw: ", show w'
+                                         , ", h: ", show h'
+                                         ]
+                   in trace errstr $ block -- can't move, keep same
