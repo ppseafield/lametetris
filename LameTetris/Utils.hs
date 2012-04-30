@@ -7,6 +7,7 @@ import Data.Array.Repa
 import Data.Array.Repa.Repr.Vector
 import qualified Data.Array.Repa as R
 import Control.Monad.RWS.Strict
+import Debug.Trace (trace)
 
 import Graphics.UI.SDL
 
@@ -51,6 +52,7 @@ location x y = Just $ Rect ((x * blockWidth) + boardStartX)
 bothJust :: Cell -> Cell -> Bool
 bothJust (Just _) (Just _) = True            
 bothJust _ _ = False
+
 
 {- Setter functions -}
 setLineNum :: Word32 -> Game ()
