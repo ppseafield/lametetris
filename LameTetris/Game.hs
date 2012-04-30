@@ -9,6 +9,7 @@ import Prelude
 import qualified Prelude as P
 import System.Random
 import Data.Maybe (catMaybes, isJust)
+import Data.List (foldl', sort, findIndex)
 import Control.Monad (when)
 import Control.Monad.RWS.Strict
 import Data.Array.Repa
@@ -129,6 +130,32 @@ combineAt (x,y) src dest = computeVectorS $ traverse dest id insertCell
         Nothing -> lookupDest spot -- Nothing new, keep moving...
         occupiedCell -> occupiedCell -- There's something to add, so use that!
 
+
+-- | Checks if there are any full rows on the board and removes them
+removeFullRowsFromBoard :: Game ()
+removeFullRowsFromBoard = do
+  brd <- gets board
+  let fullRows = scanFullRows brd
+  when (not $ null fullRows) $
+    setBoard $ trace ("Full Rows: " P.++ show fullRows) $ removeRows brd fullRows
+    
+removeRows :: Board -> [Int] -> Board
+removeRows brd rows = computeVectorS $ traverse brd id determineCell
+  where
+    numToDrop = length rows
+    sh = extent brd
+    determineCell lookupBrd spot@(R.Z :. x :. y)
+      | y < numToDrop = Nothing
+      | otherwise =
+        case findIndex (== y) $ reverse $ sort (y:rows) of
+             Nothing -> error "what is this I don't even... I JUST PUT THAT THERE"
+                        -- this is for cases when the y index of the cell is also a row
+                        -- that was just removed :(
+             Just ix -> let newIndex = if (y `elem` rows) then ix + 1 else ix
+                        in lookupBrd (R.Z :. x :. y - newIndex)
+
+
+
 -- | Sees if there are any full rows - they mean points!!
   -- [] means no rows were full
   -- [1, 3] means rows 1 and 3 were full!!!
@@ -168,7 +195,7 @@ checkPieceCanMove block dx dy = do
       -- y+1 gets us the 
       boardSlice = computeVectorS $ extract (R.Z :. x+dx :. y+dy) currentsh brd
   if (y + h) >= boardHeight || (x + dx) < 0 || (x + dx) > (boardWidth - w) -- board edge check
-    then trace ("right edge check: " P.++ show (x + dx)) $ return False -- Bottom of the board, left side of board, right side
+    then return False -- Bottom of the board, left side of board, right side
     else let doesntCollide = not $ collide currentSlice boardSlice -- board contents check
          in return doesntCollide
 
@@ -189,16 +216,16 @@ movePiece dx dy = do
   -- all over again
 setPieceAndStartAnew :: Game ()
 setPieceAndStartAnew = do
-  newNextBlock <- trace "setting and starting anew" $ spawnBlock
+  newNextBlock <- spawnBlock
   gs <- get
   let current = currentPiece gs
-      (x,y) = position current
       nextp = nextPiece gs
-      brd = board gs
+      newBoard = combineAt (position current) (guts current) (board gs)
   put $ gs { currentPiece = nextp { position = (4, 1) }
            , nextPiece = newNextBlock { position = (12, 8) }
-           , board = (combineAt (position current) (guts current) brd)
+           , board = newBoard
            }
+  removeFullRowsFromBoard
 
 
 rotateCurrent :: Game ()
@@ -224,13 +251,7 @@ rotateCurrent = gets currentPiece >>= rotate >>= setCurrentPiece
          translateC (R.Z :. x :. y) = (R.Z :. (oldw - y - 1) :. x)
          newgrid = computeVectorS $ backpermute newsh translateC grid
          newblock = Block { position = newpos, guts = newgrid }
-     canMove <- trace (show newblock) $ checkPieceCanMove newblock 0 0
+     canMove <- checkPieceCanMove newblock 0 0
      return $ if canMove
-              then trace "block rotated" $ newblock
-              else let errstr = P.concat ["Can't rotate!\n"
-                                         , "x: ", show newx
-                                         , ", y: ", show newy
-                                         , "\nw: ", show w'
-                                         , ", h: ", show h'
-                                         ]
-                   in trace errstr $ block -- can't move, keep same
+              then newblock
+              else block -- can't move, keep same
