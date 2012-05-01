@@ -70,4 +70,5 @@ data GameState =
             , currentPiece :: Block -- ^ current dropping piece
             , nextPiece :: Block -- ^ next piece to be generated
             , board :: Board
+            , linesText :: Surface
             } deriving (Show)

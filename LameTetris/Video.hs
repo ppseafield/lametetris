@@ -13,6 +13,7 @@ import Graphics.UI.SDL
 import qualified Graphics.UI.SDL as SDL
 import Graphics.UI.SDL.Color
 import Graphics.UI.SDL.Image
+import Graphics.UI.SDL.TTF
 
 import LameTetris.Types
 import qualified LameTetris.Types as LT
@@ -21,6 +22,9 @@ import LameTetris.Utils
 
 -- | Background color pixel 
 bgPixel = Pixel 0x201e1e
+
+-- | Text Color
+textColor = Color 255 255 255
 
 
 {- Drawing functions -}
@@ -78,6 +82,7 @@ drawStaticBoardParts :: Game ()
 drawStaticBoardParts = do
   screen <- asks mainScreen
   tiles <- asks tileSet
+  linetxt <- gets linesText
 
   liftIO $ do fillRect screen Nothing bgPixel
               -- easy blitting function
@@ -106,6 +111,7 @@ drawStaticBoardParts = do
               blitSurface tiles (Just $ Rect 56 199 41 15) screen (rpoint 465 220)
               -- lines
               blitSurface tiles (Just $ Rect 6 197 44 17)  screen (rpoint 465 500)
+              blitSurface linetxt Nothing screen (rpoint 555 555)
 
               return ()
               
@@ -144,7 +150,8 @@ loadResources = do
   screen <- setVideoMode 600 768 32 initScreenFlags
   setCaption "Lame Tetris!" []
   tiles <- loadImage "data/tiles.png" Nothing
+  fnt <- openFont "data/sabatica-regular.ttf" 28
   return $ Resources { mainScreen = screen
                      , tileSet = tiles
-                     , font = undefined
+                     , font = fnt
                      }

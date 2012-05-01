@@ -74,6 +74,10 @@ setBoard :: Board -> Game ()
 setBoard brd = do gs <- get
                   put $ gs { board = brd }
 
+setLinesText :: Surface -> Game ()
+setLinesText linetxt = do gs <- get
+                          put $ gs { linesText = linetxt }
+
 
 {- BlockType functions -}
 

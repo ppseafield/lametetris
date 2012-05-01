@@ -19,6 +19,7 @@ import Debug.Trace (trace)
 
 import Graphics.UI.SDL
 import qualified Graphics.UI.SDL as SDL
+import Graphics.UI.SDL.TTF
 
 import LameTetris.Types
 import qualified LameTetris.Types as LT
@@ -49,16 +50,18 @@ startBoard :: Board
 startBoard = fromListVector (R.Z :. 10 :. 20) $ replicate 200 Nothing
 
 -- | Initial game state
-initialGS :: IO GameState
-initialGS = do time <- initialTimer
-               frst <- spawnBlock'
-               next <- spawnBlock'
-               return $ GameState { lineNum = 0
-                                  , timer = time
-                                  , currentPiece = frst
-                                  , nextPiece = next { position = (12, 8) }
-                                  , board = startBoard
-                                  }
+initialGS :: Font -> IO GameState
+initialGS fnt = do time <- initialTimer
+                   linetxt <- renderTextSolid fnt "0" textColor
+                   frst <- spawnBlock'
+                   next <- spawnBlock'
+                   return $ GameState { lineNum = 0
+                                      , timer = time
+                                      , currentPiece = frst
+                                      , nextPiece = next { position = (12, 8) }
+                                      , board = startBoard
+                                      , linesText = linetxt
+                                      }
 
 -- | Handle events, then draw the game, then do it again (unless you quit)
 gameLoop :: Game ()
@@ -104,7 +107,6 @@ handleEvent (KeyUp (Keysym SDLK_RIGHT _ _)) = movePiece 1 0
 handleEvent (KeyUp (Keysym SDLK_DOWN _ _))  = movePiece 0 1
 handleEvent (KeyUp (Keysym SDLK_UP _ _)) = rotateCurrent
 
-
 handleEvent _ = return ()
 
 
@@ -136,8 +138,8 @@ removeFullRowsFromBoard :: Game ()
 removeFullRowsFromBoard = do
   brd <- gets board
   let fullRows = scanFullRows brd
-  when (not $ null fullRows) $
-    setBoard $ trace ("Full Rows: " P.++ show fullRows) $ removeRows brd fullRows
+  when (not $ null fullRows) $ do addRowsToCount $ length fullRows                                  
+                                  setBoard $ removeRows brd fullRows
     
 removeRows :: Board -> [Int] -> Board
 removeRows brd rows = computeVectorS $ traverse brd id determineCell
@@ -173,6 +175,18 @@ scanFullRows grid = catMaybes . P.map checkFull $ rows
                              case isFull of
                                False -> Nothing -- Ain't full, please disregard
                                True -> Just ix -- Full row here, remember the index!
+
+-- | handles change in row count
+addRowsToCount :: Int -> Game ()                               
+addRowsToCount ct = do linum <- gets lineNum
+                       linetxt <- gets linesText
+                       fnt <- asks font
+                       let newct = linum + (toEnum ct)
+                       setLineNum newct
+                       liftIO $ freeSurface linetxt
+                       newlinetxt <- liftIO $ renderTextSolid fnt (show newct) textColor
+                       setLinesText newlinetxt
+
 
 
 -- | Checks if we should set the current piece into the board and move on                    
