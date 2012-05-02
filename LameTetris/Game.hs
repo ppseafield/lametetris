@@ -15,7 +15,6 @@ import Control.Monad.RWS.Strict
 import Data.Array.Repa
 import qualified Data.Array.Repa as R
 import Data.Array.Repa.Repr.Vector
-import Debug.Trace (trace)
 
 import Graphics.UI.SDL
 import qualified Graphics.UI.SDL as SDL
@@ -61,17 +60,20 @@ initialGS fnt = do time <- initialTimer
                                       , nextPiece = next { position = (12, 8) }
                                       , board = startBoard
                                       , linesText = linetxt
+                                      , gameOver = False
                                       }
 
 -- | Handle events, then draw the game, then do it again (unless you quit)
 gameLoop :: Game ()
 gameLoop = do
   event <- handlePoll
-  when (event /= Quit) $ do brd <- gets board
-                            drawBoard brd
-                            handleInterval
-                            waitUntilNextFrame
-                            gameLoop
+  over <- gets gameOver
+  when (event /= Quit && not over) $
+    do brd <- gets board
+       drawBoard brd
+       handleInterval
+       waitUntilNextFrame
+       gameLoop
 
 
 -- | Checks if the interval has been reached, if so, move down!
@@ -138,7 +140,6 @@ removeFullRowsFromBoard :: Game ()
 removeFullRowsFromBoard = do
   brd <- gets board
   let fullRows = scanFullRows brd
-  trace ("Full rows: " P.++ show fullRows) $ return ()
   when (not $ null fullRows) $ do addRowsToCount $ length fullRows                                  
                                   setBoard $ removeRows brd fullRows
     
@@ -242,13 +243,16 @@ setPieceAndStartAnew = do
   newNextBlock <- spawnBlock
   gs <- get
   let current = currentPiece gs
-      nextp = nextPiece gs
+      nextp = (nextPiece gs) { position = (4, 1) }
       newBoard = combineAt (position current) (guts current) (board gs)
-  put $ gs { currentPiece = nextp { position = (4, 1) }
+  put $ gs { currentPiece = nextp
            , nextPiece = newNextBlock { position = (12, 8) }
            , board = newBoard
            }
   removeFullRowsFromBoard
+  canSetNew <- checkPieceCanMove nextp 0 0
+  when (not canSetNew) $ setGameOver True
+  
 
 
 rotateCurrent :: Game ()

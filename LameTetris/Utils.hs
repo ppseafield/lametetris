@@ -78,6 +78,9 @@ setLinesText :: Surface -> Game ()
 setLinesText linetxt = do gs <- get
                           put $ gs { linesText = linetxt }
 
+setGameOver :: Bool -> Game ()
+setGameOver over = do gs <- get
+                      put $ gs { gameOver = over }
 
 {- BlockType functions -}
 

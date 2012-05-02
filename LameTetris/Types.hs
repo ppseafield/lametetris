@@ -71,4 +71,5 @@ data GameState =
             , nextPiece :: Block -- ^ next piece to be generated
             , board :: Board
             , linesText :: Surface
+            , gameOver :: Bool
             } deriving (Show)
