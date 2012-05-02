@@ -138,9 +138,12 @@ removeFullRowsFromBoard :: Game ()
 removeFullRowsFromBoard = do
   brd <- gets board
   let fullRows = scanFullRows brd
+  trace ("Full rows: " P.++ show fullRows) $ return ()
   when (not $ null fullRows) $ do addRowsToCount $ length fullRows                                  
                                   setBoard $ removeRows brd fullRows
     
+-- | Takes a board and a list of y-indexed rows, then returns a board
+  -- without those rows (padded with Nothings on top)
 removeRows :: Board -> [Int] -> Board
 removeRows brd rows = computeVectorS $ traverse brd id determineCell
   where
@@ -153,8 +156,14 @@ removeRows brd rows = computeVectorS $ traverse brd id determineCell
              Nothing -> error "what is this I don't even... I JUST PUT THAT THERE"
                         -- this is for cases when the y index of the cell is also a row
                         -- that was just removed :(
-             Just ix -> let newIndex = if (y `elem` rows) then ix + 1 else ix
-                        in lookupBrd (R.Z :. x :. y - newIndex)
+             Just offset -> let offset' = if (y `elem` rows) then offset + 1 else offset
+                                y' = properY (y - offset')
+                            in lookupBrd (R.Z :. x :. y')
+    properY y
+      | y `elem` rows = properY (y - 1)
+      | otherwise = y
+
+
 
 
 
