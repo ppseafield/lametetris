@@ -10,7 +10,7 @@ import qualified Data.Array.Repa as R
 import Control.Monad.RWS.Strict
 
 import Graphics.UI.SDL
-import Graphics.UI.SDL.TTF
+import "SDL-ttf" Graphics.UI.SDL.TTF.Types
 
 
 instance Monoid Int where

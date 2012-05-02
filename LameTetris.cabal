@@ -1,5 +1,5 @@
 name: LameTetris
-version: 0.0.0
+version: 0.1.0
 synopsis: My attempt to recreate Tetris
 category: Game
 author: Patrick Seafield (ppseafield@gmail.com)
@@ -7,8 +7,37 @@ license: BSD3
 license-file: LICENSE
 build-type: Simple
 cabal-version: >= 1.2
-data-dir: data/
+data-dir: data
+build-depends: base >= 4,
+               SDL,
+               SDL-image,
+               SDL-mixer,
+               SDL-ttf,
+               transformers,
+							 repa >= 3
 
 executable lametetris
   main-is: LameTetris.hs
-  build-depends: SDL, SDL-image, SDL-mixer, SDL-ttf, transformers
+  other-modules: LameTetris.Types,
+                 LameTetris.Utils,
+                 LameTetris.Timer
+                 LameTetris.Video,
+                 LameTetris.Game
+  build-depends: base >= 4,
+                 SDL,
+                 SDL-image,
+                 SDL-mixer,
+                 SDL-ttf,
+                 transformers,
+                 repa >= 3
+  ghc-options: -Odph
+               -rtsopts
+               -threaded
+               -fno-liberate-case
+               -funfolding-use-threshold1000
+               -funfolding-keeness-factor1000
+               -fllvm
+               -optlo-O3
+               -Wall
+               -package base
+  extra-libraries: SDL, SDL-image, SDL-mixer, SDL-ttf, transformers, repa
